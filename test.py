@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine_similar
 import numpy as np
 
 # Configurar la clave de API de OpenAI
-openai.api_key = OPENAI_API_KEY=OPENAI_API_KEY='api_key'
+openai.api_key = OPENAI_API_KEY='api_key'
 
 # Función para obtener embeddings utilizando la API de OpenAI
 def get_embedding(text, engine='text-embedding-ada-002'):
@@ -44,30 +44,15 @@ def buscar(busqueda, datos, n_resultados=5): # busca en los datos el texto más 
     mejor_resultado = datos.iloc[:1][["texto", "Similitud"]]
     return mejor_resultado
 
-# Función para pulir la respuesta utilizando OpenAI
-def pulir_respuesta(texto):
-    response = openai.Completion.create(
-        engine="gpt-4o-mini",
-        prompt=f"Por favor, pule y mejora la siguiente respuesta: {texto}",
-        max_tokens=150
-    )
-    return response.choices[0].text.strip()
-
-# Función para buscar y luego pulir la respuesta
-def responder_pregunta(pregunta):
-    resultados = buscar(pregunta, textos_df)
-    texto_original = resultados.iloc[0]['texto']
-    
-    # Llamar a OpenAI para pulir la respuesta
-    respuesta_pulida = pulir_respuesta(texto_original)
-    
-    return pd.DataFrame([[respuesta_pulida, resultados.iloc[0]['Similitud']]], columns=["Texto", "Similitud"])
-
 # Carga y procesa el PDF
 pdf_path = './EstadisticaDescriptiva.pdf'
 textos_df = process_pdf(pdf_path)
 
 # Interfaz Gradio para la búsqueda
+def responder_pregunta(pregunta):
+    resultados = buscar(pregunta, textos_df)
+    return resultados
+
 with gr.Blocks() as demo:
     busqueda = gr.Textbox(label="Buscar")
     output = gr.DataFrame(headers=["Texto", "Similitud"])
